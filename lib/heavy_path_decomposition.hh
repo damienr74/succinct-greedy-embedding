@@ -6,10 +6,10 @@
 // Create heavy path decomposition data structure to allow for fast
 // computation of arbitrary node properties via segment trees and or
 // prefix sums/mins/operation.
-class HeavyPathDecomposition {
+struct HeavyPathDecomposition {
     using idx_type = std::size_t;
     using tree_type = std::vector<std::vector<idx_type>>;
-    static const idx_type no_child = ~idx_type{0};
+    static constexpr idx_type no_child = ~idx_type{0};
 
     idx_type n;
     std::vector<idx_type> parent; // parent of a tree node.
@@ -17,8 +17,9 @@ class HeavyPathDecomposition {
     std::vector<idx_type> heavy; // which child is the heavy one.
     std::vector<idx_type> head; // topmost vertex of the current heavy path.
     std::vector<idx_type> pos; // contiguous positioning of nodes for queries.
+    std::vector<idx_type> subtree_size;
 
-    int dfs(idx_type v, const tree_type &tree) {
+    auto dfs(idx_type v, const tree_type &tree) -> int {
         int size = 1;
         int max_subtree_size = 0;
 
@@ -33,11 +34,16 @@ class HeavyPathDecomposition {
             }
         }
 
-        return size;
+        // Investigate whether this reduces or increases the number of bits
+        // (most likely increases).
+        if (max_subtree_size < size/2) {
+            heavy[v] = no_child;
+        }
+        return subtree_size[v] = size;
     }
 
     void decompose(idx_type v, idx_type h, const tree_type &tree, idx_type &cur) {
-        head[h] = h;
+        head[v] = h;
         pos[v] = cur++;
         if (heavy[v] != no_child) {
             decompose(heavy[v], h, tree, cur);
@@ -55,8 +61,9 @@ public:
         : n(tree.size())
         , parent(n)
         , depth(n)
-        , heavy(n, -1)
+        , heavy(n, no_child)
         , pos(n)
+        , subtree_size(n)
         {
 
         dfs(0, tree);

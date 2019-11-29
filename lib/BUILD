@@ -9,3 +9,13 @@ cc_library(
 	hdrs = ['weight_balanced_tree.hh'],
 	visibility = ['//visibility:public'],
 )
+
+cc_library(
+	name = 'dyadic-tree-metric-embedding',
+	hdrs = ['dyadic_tree_metric_embedding.hh'],
+	deps = [
+		':heavy-path-decomposition',
+		':weight-balanced-tree',
+	],
+	visibility = ['//visibility:public'],
+)

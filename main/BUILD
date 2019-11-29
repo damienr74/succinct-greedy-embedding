@@ -1,8 +1,7 @@
 cc_binary(
 	name = 'main',
 	deps = [
-		'//lib:weight-balanced-tree',
-		'//lib:heavy-path-decomposition',
+		'//lib:dyadic-tree-metric-embedding',
 	],
 	srcs = ['main.cc'],
 )

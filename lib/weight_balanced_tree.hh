@@ -13,7 +13,7 @@
 // doing a binary search on the range that was found by the doubling
 // search, I do the binary search directly since they are asymptotically
 // the same, and it is more maintaineable.
-template <typename Float>
+template <typename Weight>
 struct AutocraticWeightBalancedTree {
     using idx_type = std::size_t;
     using tree_type = std::vector<std::vector<idx_type>>;
@@ -24,20 +24,40 @@ struct AutocraticWeightBalancedTree {
     std::vector<std::pair<int, int>> interval_nodes;
     // depth and autocratic depth.
     std::vector<std::pair<int, int>> depths;
+    // original index of the weight.
+    std::vector<idx_type> original_index;
+    // Total weight of the autocratic weight balanced tree.
+    Weight total_weight;
+
+    explicit AutocraticWeightBalancedTree(
+        std::tuple<const std::vector<Weight>&, const std::vector<idx_type>&> t)
+        : AutocraticWeightBalancedTree(std::get<0>(t), std::get<1>(t)) {}
 
     // TODO(drobi) clean up logging.
-    explicit AutocraticWeightBalancedTree(const std::vector<Float> &weights) {
-        std::vector<Float> prefix_sum(weights.size() + 1, Float{0.0});
-        for (idx_type i = 0; i < weights.size(); i++) {
-            prefix_sum[i+1] = prefix_sum[i] + weights[i];
-            std::cerr << "prefix_sum[" << (i+1) << "] = " << prefix_sum[i+1] << '\n';
-        }
-
-        auto range_sum = [&] (int l, int r) -> Float {
-            return prefix_sum[r] - prefix_sum[l];
-        };
+    explicit AutocraticWeightBalancedTree(const std::vector<Weight> &weights,
+        const std::vector<idx_type> &original) {
+        original_index = original;
 
         using std::make_pair;
+
+        if (weights.size() == 1) {
+            tree = {};
+            total_weight = weights[0];
+            interval_nodes = {make_pair(0, 0)};
+            depths = {make_pair(0, 0)};
+        }
+
+        std::vector<Weight> prefix_sum(weights.size() + 1, Weight{0});
+        for (idx_type i = 0; i < weights.size(); i++) {
+            prefix_sum[i+1] = prefix_sum[i] + weights[i];
+            std::cerr << "prefix_sum[" << (i+1) << "] = " <<
+                prefix_sum[i+1] << '\n';
+        }
+        total_weight = prefix_sum.back();
+
+        auto range_sum = [&] (int l, int r) -> Weight {
+            return prefix_sum[r] - prefix_sum[l];
+        };
 
         std::vector<idx_type> stack{0};
         tree.push_back(std::vector<idx_type>());
@@ -67,9 +87,9 @@ struct AutocraticWeightBalancedTree {
             auto it = std::lower_bound(
                 prefix_sum.begin() + 1 + l,
                 prefix_sum.begin() + 1 + r,
-                total / 2,
-                [&, l = l](const Float f1, const Float f2) -> bool {
-                return (f1 - prefix_sum[l]) < f2;
+                total,
+                [&, l = l](const Weight f1, const Weight f2) -> bool {
+                return 2*(f1 - prefix_sum[l]) < f2;
             });
             auto dist = std::distance(prefix_sum.begin() + l, it);
             if ((r - l) == 2) {
