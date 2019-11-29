@@ -84,17 +84,22 @@ struct AutocraticWeightBalancedTree {
 
             // Algorithm does a doubling search before a binary search.. why?
             // Just do the binary search.
-            auto it = std::lower_bound(
-                prefix_sum.begin() + 1 + l,
-                prefix_sum.begin() + 1 + r,
+            const auto it = std::lower_bound(
+                prefix_sum.cbegin() + 1 + l,
+                prefix_sum.cbegin() + 1 + r,
                 total,
                 [&, l = l](const Weight f1, const Weight f2) -> bool {
-                return 2*(f1 - prefix_sum[l]) < f2;
+                return 2*(f1-prefix_sum[l]) < f2;
             });
-            auto dist = std::distance(prefix_sum.begin() + l, it);
-            if ((r - l) == 2) {
-                dist = 1;
-            }
+            const auto dist = [&](int l, int r) -> long {
+                if ((r - l) == 2) {
+                    return 1l;
+                }
+                if (it >= (prefix_sum.cbegin() + r)) {
+                    return r - l - 1;
+                }
+                return std::distance(prefix_sum.cbegin() + l, it);
+            }(l, r);
 
             const auto &pdepth = depths[node];
             if ((l + dist) >= r) {
