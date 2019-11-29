@@ -34,11 +34,13 @@ struct HeavyPathDecomposition {
             }
         }
 
+#if 0
         // Investigate whether this reduces or increases the number of bits
         // (most likely increases).
         if (max_subtree_size < size/2) {
             heavy[v] = no_child;
         }
+#endif
         return subtree_size[v] = size;
     }
 
@@ -62,6 +64,7 @@ public:
         , parent(n)
         , depth(n)
         , heavy(n, no_child)
+        , head(n)
         , pos(n)
         , subtree_size(n)
         {

@@ -15,14 +15,24 @@ auto main() -> int {
         {1, 2}, // 0
         {3, 4}, // 1
         {5, 6}, // 2
-        {7, 8}, // 3
-        {},     // 4
-        {},     // 5
-        {},     // 6
-        {},     // 7
-        {},     // 8
+        {}, // 3
+        {}, // 4
+        {}, // 5
+        {}, // 6
     };
+/*
+      (0)
+      / \
+     /   \
+   (1)   (2)
+   / \   / \
+ (3)(4) (5)(6)
+*/
 
     DyadicTreeMetricEmbedding<Fp> dtme(tree);
+    for (const auto& [v, coord] : dtme.point_embedding) {
+        std::cout << "vertex = " << v 
+            << ": (" << coord.first << ", " << coord.second << ")\n";
+    }
     return 0;
 }

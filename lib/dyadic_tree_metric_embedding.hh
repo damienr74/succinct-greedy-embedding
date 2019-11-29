@@ -144,10 +144,10 @@ struct DyadicTreeMetricEmbedding {
 
         std::vector<node_descriptor> stack{make_tuple(0, 0, 0)};
         std::map<idx_type, std::vector<bitpath>> lca_buffers;
-        std::vector<node_descriptor> tree_paths{};
+        std::map<idx_type, std::pair<bitpath, int>> tree_paths{};
         while (!stack.empty()) {
-            tree_paths.push_back(stack.back());
             auto [s_idx, s_path, s_depth] = stack.back();
+            tree_paths[s_idx] = std::make_pair(s_path, s_depth);
             const auto it = tree_embedding.find(s_idx);
             stack.pop_back();
             if (it == tree_embedding.end()) { continue; }
@@ -187,8 +187,18 @@ struct DyadicTreeMetricEmbedding {
             }
         }
 
-        for (const auto [v, path, depth] : tree_paths) {
-            // const std::pair coord(lut(path, depth), lca(lca_buffers[v]));
+        for (const auto &[v, _] : tree_paths) {
+            const auto &[h_path, h_depth] = tree_paths[hpd.head[v]];
+            const auto x = lut(h_path, h_depth);
+            const auto y = [&, v=v]() {
+                if (lca_buffers[v].size() == 0) {
+                    return x;
+                }
+
+                return lut(lca_buffers[v][0], lca(lca_buffers[v]));
+            }();
+
+            point_embedding[v] = std::make_pair(x, y);
             // must use the path to the LCA to find the the y coord.
         }
     }

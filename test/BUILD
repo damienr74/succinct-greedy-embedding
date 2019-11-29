@@ -1,0 +1,12 @@
+cc_test(
+	name = "heavy-path-decomposition",
+	srcs = [
+		"heavy_path_decomposition_tests.cc",
+	],
+	copts = ["-Iexternal/gtest/include"],
+	deps = [
+		"@gtest//:main",
+		"//lib:dyadic-tree-metric-embedding",
+	],
+	size = "small",
+)
