@@ -73,7 +73,7 @@ TEST(weight_balanced_tree, construction) {
         {},
     };
     EXPECT_EQ(wbt_p1.tree, p1_tree);
-    std::vector<std::pair<int, int>> in{
+    std::vector<std::pair<int, int>> p1_intervals{
         std::make_pair(0, 7),
         std::make_pair(0, 3),
         std::make_pair(3, 7),
@@ -88,5 +88,57 @@ TEST(weight_balanced_tree, construction) {
         std::make_pair(0, 1),
         std::make_pair(1, 2),
     };
-    EXPECT_EQ(wbt_p1.interval_nodes, in);
+    EXPECT_EQ(wbt_p1.interval_nodes, p1_intervals);
+    std::vector<int> p1_depths{
+        0,
+        1,
+        1,
+        2,
+        2,
+        3,
+        3,
+        3,
+        3,
+        2,
+        2,
+        3,
+        3,
+    };
+    EXPECT_EQ(wbt_p1.depths, p1_depths);
+
+    std::vector<std::size_t> p2_map{
+        no_child, no_child, no_child,
+    };
+    std::vector<std::size_t> p2_weights{
+        subtree_sizes[p2_map[0]],
+        subtree_sizes[p2_map[1]],
+        subtree_sizes[p2_map[2]],
+    };
+
+    WBT wbt_p2(p2_weights, p2_map);
+    EXPECT_EQ(wbt_p2.total_weight, 3);
+    std::vector<std::vector<std::size_t>> p2_tree{
+        {1, 2},
+        {3, 4},
+        {},
+        {},
+        {},
+    };
+    EXPECT_EQ(wbt_p2.tree, p2_tree);
+    std::vector<std::pair<int, int>> p2_intervals{
+        std::make_pair(0, 3),
+        std::make_pair(0, 2),
+        std::make_pair(2, 3),
+        std::make_pair(0, 1),
+        std::make_pair(1, 2),
+    };
+    EXPECT_EQ(wbt_p2.interval_nodes, p2_intervals);
+    std::vector<int> p2_depths{
+        0,
+        1,
+        1,
+        2,
+        2,
+    };
+    EXPECT_EQ(wbt_p2.depths, p2_depths);
 }

@@ -1,38 +1,40 @@
 #include "lib/dyadic_tree_metric_embedding.hh"
 
 auto main() -> int {
-    // TODO(drobi) write acceptable tests.
     using Fp = long double;
-
-    std::vector<std::size_t> id{0, 1, 2, 3};
-    std::vector<Fp> weights1{1.5, 2.4, 3.5, 3.4};
-    AutocraticWeightBalancedTree<Fp> tree1(weights1, id);
-
-    std::vector<Fp> weights2{1, 1, 1, 1};
-    AutocraticWeightBalancedTree<Fp> tree2(weights2, id);
-
-    std::vector<std::vector<std::size_t>> tree {
-        {1, 2}, // 0
-        {3, 4}, // 1
-        {5, 6}, // 2
-        {}, // 3
-        {}, // 4
-        {}, // 5
-        {}, // 6
+    using hpd = HeavyPathDecomposition;
+    enum v {
+        a = 0,
+        b,
+        c,
+        d,
+        e,
+        f,
+        g,
+        h,
+        i,
+        j,
+        k,
     };
-/*
-      (0)
-      / \
-     /   \
-   (1)   (2)
-   / \   / \
- (3)(4) (5)(6)
-*/
+    hpd::tree_type tree{
+        {b, c, d, k}, // a root.
+        {}, // b leaf.
+        {}, // c leaf.
+        {e}, // d.
+        {f}, // e.
+        {}, // f.
+        {}, // g.
+        {g}, // h.
+        {h}, // i.
+        {}, // j.
+        {i, j}, // k.
+    };
 
     DyadicTreeMetricEmbedding<Fp> dtme(tree);
-    for (const auto& [v, coord] : dtme.point_embedding) {
-        std::cout << "vertex = " << v 
-            << ": (" << coord.first << ", " << coord.second << ")\n";
+    const auto embedding = dtme.embedding();
+    for (unsigned v = 0; v < embedding.size(); v++) {
+        const auto &[x, y] = embedding[v];
+        std::printf("vertex = %u: (%La, %La)\n", v, x, y);
     }
     return 0;
 }

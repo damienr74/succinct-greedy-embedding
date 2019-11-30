@@ -23,3 +23,16 @@ cc_test(
 	],
 	size = "small",
 )
+
+cc_test(
+	name = "dyadic-tree-metric-space-embedding",
+	srcs = [
+		"dyadic_tree_metric_space_tests.cc",
+	],
+	copts = ["-Iexternal/gtest/include"],
+	deps = [
+		"@gtest//:main",
+		"//lib:dyadic-tree-metric-embedding",
+	],
+	size = "small",
+)

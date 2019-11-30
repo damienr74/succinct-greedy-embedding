@@ -23,7 +23,7 @@ struct AutocraticWeightBalancedTree {
     // interval represented by that node.
     std::vector<std::pair<int, int>> interval_nodes;
     // depth and autocratic depth.
-    std::vector<std::pair<int, int>> depths;
+    std::vector<int> depths;
     // original index of the weight.
     std::vector<idx_type> original_index;
     // Total weight of the autocratic weight balanced tree.
@@ -40,30 +40,25 @@ struct AutocraticWeightBalancedTree {
 
         using std::make_pair;
 
-        if (weights.size() == 1) {
-            tree = {};
-            total_weight = weights[0];
-            interval_nodes = {make_pair(0, 0)};
-            depths = {make_pair(0, 0)};
-        }
+        tree.push_back(std::vector<idx_type>());
+        interval_nodes.push_back(make_pair(0, weights.size()));
+        depths.push_back(0);
 
         std::vector<Weight> prefix_sum(weights.size() + 1, Weight{0});
         for (idx_type i = 0; i < weights.size(); i++) {
             prefix_sum[i+1] = prefix_sum[i] + weights[i];
-            std::cerr << "prefix_sum[" << (i+1) << "] = " <<
-                prefix_sum[i+1] << '\n';
         }
         total_weight = prefix_sum.back();
+
+        if (weights.size() == 1) {
+            return;
+        }
 
         auto range_sum = [&] (int l, int r) -> Weight {
             return prefix_sum[r] - prefix_sum[l];
         };
 
         std::vector<idx_type> stack{0};
-        tree.push_back(std::vector<idx_type>());
-        interval_nodes.push_back(make_pair(0, weights.size()));
-        depths.push_back(make_pair(0,0));
-
         while (!stack.empty()) {
             auto node = stack.back();
             auto [l, r] = interval_nodes[node];
@@ -72,15 +67,10 @@ struct AutocraticWeightBalancedTree {
 
             // If the node is a leaf, there are no children.
             if ((r - l) <= 1) {
-                std::cerr << "node " << node << " is a leaf\n";
-                auto &[depth, autocratic] = depths[node];
-                autocratic += depth;
-
                 continue;
             }
 
             auto total = range_sum(l, r);
-            std::cerr << "total range sum " << total << '\n';
 
             // Algorithm does a doubling search before a binary search.. why?
             // Just do the binary search.
@@ -101,38 +91,21 @@ struct AutocraticWeightBalancedTree {
                 return std::distance(prefix_sum.cbegin() + l, it);
             }(l, r);
 
-            const auto &pdepth = depths[node];
-            if ((l + dist) >= r) {
-                // only child of node.
-                std::cerr << "sinle child at [" << l << ", " << r << ")\n";
-                std::cerr << "single child at " << tree.size() << "\n";
-                std::cerr << "  weight of " << range_sum(l, r) << "\n";
-                tree[node].push_back(tree.size());
-                tree.push_back(std::vector<idx_type>());
-                interval_nodes.push_back(make_pair(l, r));
-                depths.push_back(make_pair(pdepth.first + 1, pdepth.first + 1));
-                continue;
-            }
-
+            // don't use a reference here... you're inserting... you doofus.
+            const auto pdepth = depths[node];
             // left child of node.
-            std::cerr << "left child at [" << l << ", " << (l + dist) << ")\n";
-            std::cerr << "left child at " << tree.size() << "\n";
-            std::cerr << "  weight of " << range_sum(l, l + dist) << "\n";
             tree[node].push_back(tree.size());
             stack.push_back(tree.size());
             tree.push_back(std::vector<idx_type>());
             interval_nodes.push_back(make_pair(l, l + dist));
-            depths.push_back(make_pair(pdepth.first + 1, pdepth.first + 1));
+            depths.push_back(pdepth + 1);
 
             // right child of node.
-            std::cerr << "right child at [" << (l + dist) << ", " << r << ")\n";
-            std::cerr << "right child at " << tree.size() << "\n";
-            std::cerr << "  weight of " << range_sum(l + dist, r) << "\n";
             tree[node].push_back(tree.size());
             stack.push_back(tree.size());
             tree.push_back(std::vector<idx_type>());
             interval_nodes.push_back(make_pair(l + dist, r));
-            depths.push_back(make_pair(pdepth.first + 1, pdepth.first + 1));
+            depths.push_back(pdepth + 1);
         }
     }
 };
