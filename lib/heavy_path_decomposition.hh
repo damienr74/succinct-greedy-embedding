@@ -1,14 +1,12 @@
 #ifndef LIB_HEAVY_LIGHT_DECOMPOSITION
 #define LIB_HEAVY_LIGHT_DECOMPOSITION
 
-#include <vector>
+#include "lib/types.hh"
 
 // Create heavy path decomposition data structure to allow for fast
 // computation of arbitrary node properties via segment trees and or
 // prefix sums/mins/operation.
 struct HeavyPathDecomposition {
-    using idx_type = std::size_t;
-    using tree_type = std::vector<std::vector<idx_type>>;
     static constexpr idx_type no_child = ~idx_type{0};
 
     idx_type n;

@@ -7,6 +7,8 @@
 #include <tuple>
 #include <vector>
 
+#include "lib/types.hh"
+
 // Creates a weight balanced tree in the form of a median split tree.
 // This is practically the same O(n) construction as the paper.
 // The only exception is that instead of doing a doubling search before
@@ -15,9 +17,6 @@
 // the same, and it is more maintaineable.
 template <typename Weight>
 struct AutocraticWeightBalancedTree {
-    using idx_type = std::size_t;
-    using tree_type = std::vector<std::vector<idx_type>>;
-
     // adjacency representation of tree.
     tree_type tree;
     // interval represented by that node.

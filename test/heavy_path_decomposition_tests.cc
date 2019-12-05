@@ -19,7 +19,7 @@ TEST(heavy_path_decomposition, check_decomposition) {
         j,
         k,
     };
-    hpd::tree_type tree_adj{
+    tree_type tree_adj{
         {b, c, d, k}, // a root.
         {}, // b leaf.
         {}, // c leaf.

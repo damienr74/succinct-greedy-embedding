@@ -5,18 +5,17 @@
 #include <set>
 #include <map>
 
-#include "heavy_path_decomposition.hh"
-#include "weight_balanced_tree.hh"
+#include "lib/types.hh"
+#include "lib/heavy_path_decomposition.hh"
+#include "lib/weight_balanced_tree.hh"
 
 template <class Float>
 class DyadicTreeMetricEmbedding {
 public:
     constexpr static auto path_length = 128;
-    using idx_type = std::size_t;
-    using tree_type = std::vector<std::vector<idx_type>>;
     using weight_balanced_tree_type = AutocraticWeightBalancedTree<idx_type>;
     using bitpath = std::bitset<path_length>;
-    using embedding_map = std::vector<std::pair<Float, Float>>;
+    using node = std::pair<bitpath, int>;
 
     explicit DyadicTreeMetricEmbedding(const tree_type &t)
         : tree{t}
@@ -53,13 +52,41 @@ public:
         compute_embedding(hpd);
     }
 
-    auto embedding() -> embedding_map const { return point_embedding; }
+    Float distance(idx_type u, idx_type v) const {
+        if (u == v) return 0;
+        const auto pu = point_embedding[u];
+        const auto pv = point_embedding[v];
+        std::vector<bitpath> children{pu.first.first, pv.first.first};
+        const int ancestor = lca(children);
+        const auto [path1, d1] = pu.first;
+        const auto [path2, d2] = pv.first;
+        Float xdiff = (d1 + d2 - 2*ancestor);
+        return xdiff + std::abs(lut(pu.second) - lut(pv.second));
+    }
+
+    auto coordinate_bitsize() -> int const {
+        const auto it = std::max_element(point_embedding.cbegin(), point_embedding.cend(),
+            [](const auto &e1, const auto &e2) {
+            return std::max(e1.second.second, e1.first.second)
+                < std::max(e2.second.second, e2.first.second);
+        });
+
+        if (it == point_embedding.cend()) {
+            return 0;
+        }
+
+        return std::max(it->second.second, it->first.second);
+    }
+
+    auto embedding() -> std::vector<std::pair<node, node>> const {
+        return point_embedding;
+    }
 
 private:
     tree_type tree;
     std::map<idx_type, weight_balanced_tree_type> tree_embedding;
-    embedding_map point_embedding;
-    std::map<idx_type, std::pair<bitpath, int>> tree_paths{};
+    std::vector<std::pair<node, node>> point_embedding;
+    std::map<idx_type, node> tree_paths{};
 
     struct LUT {
         constexpr static auto start_fraction = 0.5;
@@ -77,6 +104,10 @@ private:
             }
             return total;
         }
+
+        constexpr auto operator()(const node &n) const -> Float {
+            return (*this)(n.first, n.second);
+        }
     };
     constexpr static LUT lut{};
 
@@ -88,7 +119,8 @@ private:
         int curr_lca = path_length;
         bitpath u{0};
         for (const auto v : children) {
-            int lca = ffs(u^v);
+            const auto uxv = u^v;
+            int lca = ffs(uxv);
             if (lca < curr_lca) {
                 curr_lca = lca;
                 u = v;
@@ -98,9 +130,9 @@ private:
         return curr_lca;
     }
     static auto ffs(bitpath bits) -> int {
-        int w = path_length;
-        int fs = 0;
         const int bw = 64;
+        int w = path_length - bw;
+        int fs = 0;
 
         while(w > 0) {
             auto bottom = (bitpath(~0ULL) & bits).to_ullong();
@@ -208,8 +240,7 @@ private:
 
     const void compute_embedding(const HeavyPathDecomposition &hpd) {
         for (int v = 0; v < hpd.n; v++) {
-            const auto &[h_path, h_depth] = tree_paths[hpd.head[v]];
-            const auto x = lut(h_path, h_depth);
+            const auto x = tree_paths[hpd.head[v]];
             const auto y = [&, &children = tree[v]]() {
                 if (children.size() == 0) {
                     return x;
@@ -224,10 +255,10 @@ private:
                     lca_depth.push_back(d);
                 }
                 if (lca_buffer.size() == 1) {
-                    return lut(lca_buffer[0], lca_depth[0]);
+                    return std::make_pair(lca_buffer[0], lca_depth[0]);
                 }
 
-                return lut(lca_buffer[0], lca(lca_buffer));
+                return std::make_pair(lca_buffer[0], lca(lca_buffer));
             }();
 
             point_embedding[v] = std::make_pair(x, y);

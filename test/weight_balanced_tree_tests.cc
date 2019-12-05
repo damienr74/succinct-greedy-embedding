@@ -57,7 +57,7 @@ TEST(weight_balanced_tree, construction) {
     using WBT = AutocraticWeightBalancedTree<std::size_t>;
     WBT wbt_p1(p1_weights, p1_map);
     EXPECT_EQ(wbt_p1.total_weight, 9);
-    std::vector<std::vector<std::size_t>> p1_tree{
+    tree_type p1_tree{
         {1, 2},
         {9, 10},
         {3, 4},
@@ -117,7 +117,7 @@ TEST(weight_balanced_tree, construction) {
 
     WBT wbt_p2(p2_weights, p2_map);
     EXPECT_EQ(wbt_p2.total_weight, 3);
-    std::vector<std::vector<std::size_t>> p2_tree{
+    tree_type p2_tree{
         {1, 2},
         {3, 4},
         {},
